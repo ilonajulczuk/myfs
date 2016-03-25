@@ -1,4 +1,6 @@
 #include <functional>
+#include <vector>
+#include <algorithm>
 #include "btree.h"
 #include "bfs.h"
 #include "gtest/gtest.h"
@@ -72,13 +74,48 @@ TEST(FTest, InsertAndFindInTree) {
     }
 }
 
-TEST(FTest, TestTraversingInOrder) {
-    // TODO(att):
-    // construct the tree
-    // write the class that would append items
-    // that were passed to it during traversal
-    // test if items are in sorted order.
+class Tester {
+    // I think that relying on copy of the pointer to items_
+    // when I pass the tester as std::function is rather hacky,
+    // however using reference to std::function didn't work
+    // and replacing the std::function with template also didn't
+    // work and I don't really know why? oO
+    public:
+        using Item = BTree::Item;
+        Tester() {
+            items_ = new std::vector<Item*>();
+        }
+        void operator() (Item* item) {
+            items_->push_back(item);
+        }
+        bool isEmpty() {
+            return items_->empty();
+        }
+        bool areSorted() {
+            return std::is_sorted(
+                    items_->begin(),
+                    items_->end(),
+                    [](Item* i1, Item* i2) {
+                        return i1->key() < i2->key(); });
+        }
 
+    private:
+        std::vector<Item*>* items_;
+};
+
+TEST(FTest, TestTraversingInOrder) {
+    BTree::Tree t;
+    std::vector<std::pair<int, int>> key_to_val = {{11, 1}, {2, 3}, {8, 2}, {7, 3}};
+
+    for (const auto& pair : key_to_val) {
+        t.insert(pair.first, pair.second);
+    }
+    BFS::traverse(t.root(), printNode);
+
+    Tester tester;
+    t.root()->traverse(tester);
+    EXPECT_TRUE(!tester.isEmpty());
+    EXPECT_TRUE(tester.areSorted());
 }
 
 GTEST_API_ int main(int argc, char **argv) {

@@ -11,5 +11,4 @@ TEST(FTest, TemplateThingies) {
     std::cout << "Testing template function\n";
     printToString(&t);
     printToString(t.root());
-
 }

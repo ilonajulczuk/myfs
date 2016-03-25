@@ -26,7 +26,7 @@ namespace BTree {
             std::vector<Item*> items();
 
             Item* find(int key);
-            void traverse(std::function<void (BTree::Item*)> inFn);
+            void traverse(std::function<void(BTree::Item*)> inFn);
 
             void insert(int key, int value, bool assure);
 

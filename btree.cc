@@ -190,10 +190,9 @@ namespace BTree {
         return nodes;
     }
 
-    void Node::traverse(std::function<void (BTree::Item*)> inFn) {
+    void Node::traverse(std::function<void(BTree::Item*)> inFn) {
         Item* previous = nullptr;
         Item* current = item_;
-
         /*      4---6
          *    2   5   7
          */

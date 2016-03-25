@@ -6,11 +6,11 @@ TESTS=btree_test.cc bfs_test.cc
 all: main
 
 main: *.cc *.h
-	$(CC) -Wall -std=c++11 $(SOURCES) main.cc -o $(OUTPUT)
+	$(CC) -Wall -std=c++1y $(SOURCES) main.cc -o $(OUTPUT)
 
 clean:
 	rm $(OUTPUT)
 
 test: *.cc *.h
-	$(CC) -Wall -std=c++11 -isystem $(GTEST_DIR)/include -pthread btree_test.cc bfs_test.cc $(SOURCES) $(GTEST_DIR)/libgtest.a -o test
+	$(CC) -Wall -std=c++1y -isystem $(GTEST_DIR)/include -pthread btree_test.cc bfs_test.cc $(SOURCES) $(GTEST_DIR)/libgtest.a -o test
 
