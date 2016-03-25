@@ -33,6 +33,7 @@ namespace BTree {
             std::vector<Node*> children();
             void setItem(Item* item) { item_ = item; }
             void setParent(Node* node) { parent_ = node; }
+            Node* parent() { return parent_; }
         private:
             bool assureNotFourNode();
             Item* item_ = nullptr;

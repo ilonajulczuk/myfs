@@ -25,6 +25,23 @@ class NodeTester {
         int count() {
             return nodes_->size();
         }
+        int treeDepth() {
+            int max_depth = 0;
+            int current_depth = 1;
+            Node* parent = nullptr;
+            for(auto node : *nodes_) {
+                current_depth = 1;
+                parent = node->parent();
+                while(parent != nullptr) {
+                    current_depth++;
+                    parent = parent->parent();
+                }
+                if (current_depth > max_depth) {
+                    max_depth = current_depth;
+                }
+            }
+            return max_depth;
+        }
 
     private:
         std::vector<Node*>* nodes_;
@@ -37,16 +54,30 @@ TEST(FTest, DisplayTree) {
     // Check if the traversal is correctly in order.
     // Check if the tree has correct depth. And there is no
     // node that is invalid.
+    std::vector<BTree::Node*> nodes;
+    NodeTester tester(&nodes);
 
     // All in the same node so far.
     t.insert(11, 1);
     t.insert(2, 3);
     t.insert(7, 2);
 
+    BFS::traverse(t.root(), tester);
+    EXPECT_TRUE(!tester.isEmpty());
+    EXPECT_EQ(tester.count(), 1);
+    EXPECT_EQ(tester.treeDepth(), 1);
+    nodes.clear();
+
     // One root node and two threenodes.
     t.insert(8, 2);
     std::cout << "Traversal 1: \n";
     BFS::traverse(t.root(), printNode);
+
+    BFS::traverse(t.root(), tester);
+    EXPECT_TRUE(!tester.isEmpty());
+    EXPECT_EQ(tester.count(), 3);
+    EXPECT_EQ(tester.treeDepth(), 2);
+    nodes.clear();
 
     t.insert(8, 3);
     std::cout << "Traversal 2.1: \n";
@@ -59,6 +90,12 @@ TEST(FTest, DisplayTree) {
     // Pull up another node to root.
     std::cout << "Traversal 2.3: \n";
     BFS::traverse(t.root(), printNode);
+
+    BFS::traverse(t.root(), tester);
+    EXPECT_TRUE(!tester.isEmpty());
+    EXPECT_EQ(tester.count(), 4);
+    EXPECT_EQ(tester.treeDepth(), 2);
+    nodes.clear();
 
     t.insert(7, 3);
     std::cout << "Traversal 3.1: \n";
@@ -73,15 +110,29 @@ TEST(FTest, DisplayTree) {
     std::cout << "Traversal 4.1: \n";
     BFS::traverse(t.root(), printNode);
 
+    BFS::traverse(t.root(), tester);
+    EXPECT_TRUE(!tester.isEmpty());
+    EXPECT_EQ(tester.count(), 5);
+    EXPECT_EQ(tester.treeDepth(), 2);
+    nodes.clear();
+
     // Pull root up again, previous root become nodes.
     t.insert(3, 3);
     std::cout << "Traversal 4.2: \n";
     BFS::traverse(t.root(), printNode);
+    BFS::traverse(t.root(), tester);
+    EXPECT_TRUE(!tester.isEmpty());
+    EXPECT_EQ(tester.count(), 7);
+    EXPECT_EQ(tester.treeDepth(), 3);
+    nodes.clear();
 }
 
 TEST(FTest, InsertAndFindInTree) {
     BTree::Tree t;
-    std::vector<std::pair<int, int>> key_to_val = {{11, 1}, {2, 3}, {8, 2}, {7, 3}};
+    std::vector<std::pair<int, int>> key_to_val = {
+        {11, 1}, {2, 3}, {3, 4}, {4, 5}, {5, 6},
+        {6, 7}, {7, 8}, {8, 2}, {10, 3}, {9, 9}
+    };
 
     for (const auto& pair : key_to_val) {
         t.insert(pair.first, pair.second);
@@ -126,8 +177,11 @@ class ItemTester {
 
 TEST(FTest, TestTraversingInOrder) {
     BTree::Tree t;
-    std::vector<std::pair<int, int>> key_to_val = {{11, 1}, {2, 3}, {8, 2}, {7, 3}};
 
+    std::vector<std::pair<int, int>> key_to_val = {
+        {11, 1}, {2, 3}, {3, 4}, {4, 5}, {5, 6},
+        {6, 7}, {7, 8}, {8, 2}, {10, 3}, {9, 9}
+    };
     for (const auto& pair : key_to_val) {
         t.insert(pair.first, pair.second);
     }
