@@ -1,5 +1,5 @@
-#include "btree.h"
 #include <functional>
+#include "btree.h"
 #include "bfs.h"
 #include "gtest/gtest.h"
 
@@ -61,7 +61,6 @@ TEST(FTest, InsertAndFindInTree) {
     BTree::Tree t;
     std::vector<std::pair<int, int>> key_to_val = {{11, 1}, {2, 3}, {8, 2}, {7, 3}};
 
-
     for (const auto& pair : key_to_val) {
         t.insert(pair.first, pair.second);
     }
@@ -71,6 +70,14 @@ TEST(FTest, InsertAndFindInTree) {
         EXPECT_TRUE(found != nullptr);
         EXPECT_EQ(found->value(), pair.second);
     }
+}
+
+TEST(FTest, TestTraversingInOrder) {
+    // TODO(att):
+    // construct the tree
+    // write the class that would append items
+    // that were passed to it during traversal
+    // test if items are in sorted order.
 
 }
 

@@ -53,9 +53,8 @@ namespace BTree {
             if (key < current->key()) {
                 if (!isLeaf_) {
                     return current->left()->find(key);
-                } else {
-                    return nullptr;
                 }
+                return nullptr;
             }
             Item* next = current->nextItem();
             if (next == nullptr && !isLeaf_) {
@@ -95,10 +94,10 @@ namespace BTree {
             return false;
         }
 
-        // find the correct place to insert middle;
-        // middle gets previous item in node as left child and next as right
-        // previous node up, gets left child as right child, and next node up, gets right child as left;
-
+        // Find the correct place to insert middle.
+        // middle gets previous item in node as left child and next
+        // as right previous node up, gets left child
+        // as right child, and next node up, gets right child as left
 
         Item* previous = nullptr;
         current = parent_->item_;
@@ -147,34 +146,31 @@ namespace BTree {
         Item* current = item_;
         while (current != nullptr) {
             if (key < current->key()) {
-                if (isLeaf_) {
-                    Item* item = new Item(key, value);
-                    // check if we're inserting before first item.
-                    if (previous == nullptr) {
-                        item->setNext(current);
-                        item_ = item;
-                        return;
-                    } else {
-                        item->setNext(current);
-                        previous->setNext(item);
-                        return;
-                    }
+                if (!isLeaf_) {
+                    return current->left()->insert(key, value, true);
                 }
-                return current->left()->insert(key, value, true);
-            } else {
-                Item* next = current->nextItem();
-                if (next == nullptr) {
-                    if (isLeaf_) {
-                        Item* item = new Item(key, value);
-                        current->setNext(item);
-                        return;
-                    } else {
-                        return current->right()->insert(key, value, true);
-                    }
+                Item* item = new Item(key, value);
+                // Check if we're inserting before first item.
+                if (previous == nullptr) {
+                    item->setNext(current);
+                    item_ = item;
+                } else {
+                    item->setNext(current);
+                    previous->setNext(item);
                 }
-                previous = current;
-                current = next;
+                return;
             }
+            Item* next = current->nextItem();
+            if (next == nullptr) {
+                if (!isLeaf_) {
+                    return current->right()->insert(key, value, true);
+                }
+                Item* item = new Item(key, value);
+                current->setNext(item);
+                return;
+            }
+            previous = current;
+            current = next;
         }
     }
 
@@ -192,6 +188,26 @@ namespace BTree {
             current = next;
         }
         return nodes;
+    }
+
+    void Node::traverse(std::function<void (BTree::Item*)> inFn) {
+        Item* previous = nullptr;
+        Item* current = item_;
+
+        /*      4---6
+         *    2   5   7
+         */
+        while (current != nullptr) {
+            if (!isLeaf_ && previous == nullptr) {
+                current->left()->traverse(inFn);
+            }
+            inFn(current);
+            if (!isLeaf_) {
+                current->right()->traverse(inFn);
+            }
+            previous = current;
+            current = current->nextItem();
+        }
     }
 
     std::vector<Item*> Node::items() {
