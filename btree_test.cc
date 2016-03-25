@@ -9,6 +9,26 @@ void printNode(BTree::Node* node) {
     std::cout << node->ToString() << std::endl;
 }
 
+class NodeTester {
+    public:
+        using Node = BTree::Node;
+        NodeTester() = delete;
+        NodeTester(std::vector<Node*>* nodes) {
+            nodes_ = nodes;
+        }
+        void operator() (Node* node) {
+            nodes_->push_back(node);
+        }
+        bool isEmpty() {
+            return nodes_->empty();
+        }
+        int count() {
+            return nodes_->size();
+        }
+
+    private:
+        std::vector<Node*>* nodes_;
+};
 
 TEST(FTest, DisplayTree) {
     BTree::Tree t;
@@ -74,7 +94,7 @@ TEST(FTest, InsertAndFindInTree) {
     }
 }
 
-class Tester {
+class ItemTester {
     // I think that relying on copy of the pointer to items_
     // when I pass the tester as std::function is rather hacky,
     // however using reference to std::function didn't work
@@ -82,8 +102,9 @@ class Tester {
     // work and I don't really know why? oO
     public:
         using Item = BTree::Item;
-        Tester() {
-            items_ = new std::vector<Item*>();
+        ItemTester() = delete;
+        ItemTester(std::vector<Item*>* items) {
+            items_ = items;
         }
         void operator() (Item* item) {
             items_->push_back(item);
@@ -111,8 +132,8 @@ TEST(FTest, TestTraversingInOrder) {
         t.insert(pair.first, pair.second);
     }
     BFS::traverse(t.root(), printNode);
-
-    Tester tester;
+    std::vector<BTree::Item*> items;
+    ItemTester tester(&items);
     t.root()->traverse(tester);
     EXPECT_TRUE(!tester.isEmpty());
     EXPECT_TRUE(tester.areSorted());
