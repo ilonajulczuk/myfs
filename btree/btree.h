@@ -1,5 +1,6 @@
 #ifndef BTREE_H
 #define BTREE_H
+
 #include <string>
 #include <vector>
 #include <iostream>
@@ -20,24 +21,27 @@ namespace BTree {
             Node() = delete;
 
             Node(int key, int value);
-            Node(Item* item, Node* parent, bool isLeaf);
+            Node(Item* item, Node* parent, bool is_leaf);
 
             std::string ToString();
+
+            Item* Find(int key);
+            void Insert(int key, int value, bool assure);
+
+            void Traverse(std::function<void(BTree::Item*)> fn);
+
             std::vector<Item*> items();
-
-            Item* find(int key);
-            void traverse(std::function<void(BTree::Item*)> inFn);
-
-            void insert(int key, int value, bool assure);
-
             std::vector<Node*> children();
-            void setItem(Item* item) { item_ = item; }
-            void setParent(Node* node) { parent_ = node; }
+
+            void SetItem(Item* item) { item_ = item; }
+
             Node* parent() { return parent_; }
+            void SetParent(Node* node) { parent_ = node; }
+            bool IsLeaf() { return is_leaf_; }
         private:
-            bool assureNotFourNode();
+            bool AssureNotFourNode();
             Item* item_ = nullptr;
-            bool isLeaf_ = true;
+            bool is_leaf_ = true;
             Node* parent_ = nullptr;
     };
 
@@ -61,27 +65,28 @@ namespace BTree {
                 return right_;
             }
 
-            void setRight(Node* node) {
+            void SetRight(Node* node) {
                 right_ = node;
-            }
-
-            void setLeft(Node* node) {
-                left_ = node;
             }
 
             Node* left() {
                 return left_;
             }
-            Item* nextItem() {
-                return nextItem_;
+
+            void SetLeft(Node* node) {
+                left_ = node;
             }
-            void setNext(Item* item) {
-                nextItem_ = item;
+
+            Item* NextItem() {
+                return next_item_;
+            }
+            void SetNext(Item* item) {
+                next_item_ = item;
             }
         private:
             int key_;
             int value_;
-            Item* nextItem_ = nullptr;
+            Item* next_item_ = nullptr;
             Node* left_ = nullptr;
             Node* right_ = nullptr;
     };
@@ -94,8 +99,8 @@ namespace BTree {
             Tree() {}
             ~Tree() = default;
             Node* root() { return root_; }
-            void insert(int key, int value);
-            Item* find(int key);
+            void Insert(int key, int value);
+            Item* Find(int key);
 
         private:
             Node* root_ = nullptr;

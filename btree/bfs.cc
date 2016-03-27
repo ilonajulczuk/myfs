@@ -2,7 +2,7 @@
 
 namespace BFS {
     template<typename T, typename F>
-    void traverse(const T& start, F fn) {
+    void Traverse(const T& start, F fn) {
         std::queue<T> q;
         std::unordered_set<T> seen;
         q.push(start);
@@ -20,7 +20,7 @@ namespace BFS {
         }
     }
 
-    void traverse(BTree::Node* start, std::function<void(BTree::Node*)> fn) {
+    void Traverse(BTree::Node* start, std::function<void(BTree::Node*)> fn) {
         std::queue<BTree::Node*> q;
         std::unordered_set<BTree::Node*> seen;
         q.push(start);

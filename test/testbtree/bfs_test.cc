@@ -1,5 +1,6 @@
-#include "bfs.h"
 #include "gtest/gtest.h"
+
+#include "bfs.h"
 
 template<typename T> void printToString(T t) {
     std::cout << t->ToString() << "\n";
@@ -7,7 +8,7 @@ template<typename T> void printToString(T t) {
 
 TEST(BFSTest, TemplateThingies) {
     BTree::Tree t;
-    t.insert(5, 4);
+    t.Insert(5, 4);
     std::cout << "Testing template function\n";
     printToString(&t);
     printToString(t.root());

@@ -1,8 +1,9 @@
+#include <algorithm>
 #include <functional>
 #include <vector>
-#include <algorithm>
-#include "btree.h"
+
 #include "bfs.h"
+#include "btree.h"
 #include "gtest/gtest.h"
 
 void printNode(BTree::Node* node) {
@@ -49,78 +50,73 @@ class NodeTester {
 
 TEST(FTest, DisplayTree) {
     BTree::Tree t;
-    // TODO(att):
-    // Check if every node that was inserted is there.
-    // Check if the traversal is correctly in order.
-    // Check if the tree has correct depth. And there is no
-    // node that is invalid.
     std::vector<BTree::Node*> nodes;
     NodeTester tester(&nodes);
 
     // All in the same node so far.
-    t.insert(11, 1);
-    t.insert(2, 3);
-    t.insert(7, 2);
+    t.Insert(11, 1);
+    t.Insert(2, 3);
+    t.Insert(7, 2);
 
-    BFS::traverse(t.root(), tester);
+    BFS::Traverse(t.root(), tester);
     EXPECT_TRUE(!tester.isEmpty());
     EXPECT_EQ(tester.count(), 1);
     EXPECT_EQ(tester.treeDepth(), 1);
     nodes.clear();
 
     // One root node and two threenodes.
-    t.insert(8, 2);
+    t.Insert(8, 2);
     std::cout << "Traversal 1: \n";
-    BFS::traverse(t.root(), printNode);
+    BFS::Traverse(t.root(), printNode);
 
-    BFS::traverse(t.root(), tester);
+    BFS::Traverse(t.root(), tester);
     EXPECT_TRUE(!tester.isEmpty());
     EXPECT_EQ(tester.count(), 3);
     EXPECT_EQ(tester.treeDepth(), 2);
     nodes.clear();
 
-    t.insert(8, 3);
+    t.Insert(8, 3);
     std::cout << "Traversal 2.1: \n";
-    BFS::traverse(t.root(), printNode);
-    t.insert(6, 3);
+    BFS::Traverse(t.root(), printNode);
+    t.Insert(6, 3);
     std::cout << "Traversal 2.2: \n";
-    BFS::traverse(t.root(), printNode);
-    t.insert(9, 3);
+    BFS::Traverse(t.root(), printNode);
+    t.Insert(9, 3);
 
     // Pull up another node to root.
     std::cout << "Traversal 2.3: \n";
-    BFS::traverse(t.root(), printNode);
+    BFS::Traverse(t.root(), printNode);
 
-    BFS::traverse(t.root(), tester);
+    BFS::Traverse(t.root(), tester);
     EXPECT_TRUE(!tester.isEmpty());
     EXPECT_EQ(tester.count(), 4);
     EXPECT_EQ(tester.treeDepth(), 2);
     nodes.clear();
 
-    t.insert(7, 3);
+    t.Insert(7, 3);
     std::cout << "Traversal 3.1: \n";
-    BFS::traverse(t.root(), printNode);
-    t.insert(4, 4);
+    BFS::Traverse(t.root(), printNode);
+    t.Insert(4, 4);
 
     std::cout << "Traversal 3.2: \n";
-    BFS::traverse(t.root(), printNode);
+    BFS::Traverse(t.root(), printNode);
 
     // Pull third node up to root.
-    t.insert(1, 3);
+    t.Insert(1, 3);
     std::cout << "Traversal 4.1: \n";
-    BFS::traverse(t.root(), printNode);
+    BFS::Traverse(t.root(), printNode);
 
-    BFS::traverse(t.root(), tester);
+    BFS::Traverse(t.root(), tester);
     EXPECT_TRUE(!tester.isEmpty());
     EXPECT_EQ(tester.count(), 5);
     EXPECT_EQ(tester.treeDepth(), 2);
     nodes.clear();
 
     // Pull root up again, previous root become nodes.
-    t.insert(3, 3);
+    t.Insert(3, 3);
     std::cout << "Traversal 4.2: \n";
-    BFS::traverse(t.root(), printNode);
-    BFS::traverse(t.root(), tester);
+    BFS::Traverse(t.root(), printNode);
+    BFS::Traverse(t.root(), tester);
     EXPECT_TRUE(!tester.isEmpty());
     EXPECT_EQ(tester.count(), 7);
     EXPECT_EQ(tester.treeDepth(), 3);
@@ -135,11 +131,11 @@ TEST(FTest, InsertAndFindInTree) {
     };
 
     for (const auto& pair : key_to_val) {
-        t.insert(pair.first, pair.second);
+        t.Insert(pair.first, pair.second);
     }
 
     for (const auto& pair : key_to_val) {
-        auto found = t.find(pair.first);
+        auto found = t.Find(pair.first);
         EXPECT_TRUE(found != nullptr);
         EXPECT_EQ(found->value(), pair.second);
     }
@@ -183,12 +179,12 @@ TEST(FTest, TestTraversingInOrder) {
         {6, 7}, {7, 8}, {8, 2}, {10, 3}, {9, 9}
     };
     for (const auto& pair : key_to_val) {
-        t.insert(pair.first, pair.second);
+        t.Insert(pair.first, pair.second);
     }
-    BFS::traverse(t.root(), printNode);
+    BFS::Traverse(t.root(), printNode);
     std::vector<BTree::Item*> items;
     ItemTester tester(&items);
-    t.root()->traverse(tester);
+    t.root()->Traverse(tester);
     EXPECT_TRUE(!tester.isEmpty());
     EXPECT_TRUE(tester.areSorted());
 }
