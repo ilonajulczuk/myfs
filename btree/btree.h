@@ -43,10 +43,11 @@ namespace BTree {
 
     class Item {
         public:
+            Item(int key, int value): key_(key), value_(value) {}
+
             std::string ToString() {
                 return "<Item: " + std::to_string(key_) + ", " + std::to_string(value_) + ">";
             }
-            Item(int key, int value): key_(key), value_(value), nextItem_(nullptr), left_(nullptr), right_(nullptr) {}
 
             int key() {
                 return key_;
@@ -80,9 +81,9 @@ namespace BTree {
         private:
             int key_;
             int value_;
-            Item* nextItem_;
-            Node* left_;
-            Node* right_;
+            Item* nextItem_ = nullptr;
+            Node* left_ = nullptr;
+            Node* right_ = nullptr;
     };
 
 
@@ -90,14 +91,14 @@ namespace BTree {
         public:
             std::string ToString();
 
-            Tree() { root_ = nullptr; }
+            Tree() {}
             ~Tree() = default;
             Node* root() { return root_; }
             void insert(int key, int value);
             Item* find(int key);
 
         private:
-            Node* root_;
+            Node* root_ = nullptr;
     };
 
 } // namespace BTree
