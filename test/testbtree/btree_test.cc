@@ -243,8 +243,8 @@ TEST(FTest, TestAdjacent) {
     auto C = children[2];
     auto D = children[3];
 
-    std::map<BTree::Node*, std::vector<BTree::Node*>> adjacency_map =
-        { {A, {B}},  {B, {A, C}}, {C, {B, D}}, {D, {C}} };
+    std::map<BTree::Node*, std::pair<BTree::Node*, BTree::Node*>> adjacency_map =
+        { {A, {nullptr, B}},  {B, {A, C}}, {C, {B, D}}, {D, {C, nullptr}} };
 
     for (auto child : t.root()->children()) {
         auto adjacent = t.root()->Adjacent(child);
@@ -290,6 +290,31 @@ TEST(FTest, TestMergingWithRoot) {
 
     t.Delete(6);
     EXPECT_EQ(t.Find(6), nullptr);
+    BFS::Traverse(t.root(), printNode);
+}
+
+TEST(FTest, TestFusingLeft) {
+    BTree::Tree t;
+    std::vector<BTree::Node*> nodes;
+    NodeTester tester(&nodes);
+
+    t.Insert(1, 2);
+    t.Insert(2, 2);
+    t.Insert(2, 3);
+    t.Insert(3, 2);
+    t.Insert(4, 2);
+    t.Insert(5, 3);
+    t.Insert(6, 3);
+
+    BFS::Traverse(t.root(), tester);
+    EXPECT_TRUE(!tester.isEmpty());
+    EXPECT_EQ(tester.treeDepth(), 2);
+    EXPECT_EQ(tester.count(), 4);
+
+    BFS::Traverse(t.root(), printNode);
+
+    t.Delete(1);
+    EXPECT_EQ(t.Find(1), nullptr);
     BFS::Traverse(t.root(), printNode);
 }
 

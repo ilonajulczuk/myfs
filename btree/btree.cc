@@ -1,9 +1,7 @@
 #include <algorithm>
+
 #include "btree.h"
 
-/* TODO(att):
-   - add deletion case
-   */
 namespace BTree {
 
     Node::Node(int key, int value) {
@@ -173,18 +171,31 @@ namespace BTree {
         }
     }
 
-    std::vector<Node*> Node::Adjacent(Node* node) {
+    std::pair<Node*, Node*> Node::Adjacent(Node* node) {
         auto all_nodes = children();
         auto it = std::find(all_nodes.begin(), all_nodes.end(), node);
         auto pos = std::distance(all_nodes.begin(), it);
-        std::vector<Node*> adjacent;
+        std::pair<Node*, Node*> adjacent = {nullptr, nullptr};
         if (pos > 0) {
-            adjacent.push_back(all_nodes[pos - 1]);
+            adjacent.first = all_nodes[pos - 1];
         }
         if (pos < all_nodes.size() - 1) {
-            adjacent.push_back(all_nodes[pos + 1]);
+            adjacent.second = all_nodes[pos + 1];
         }
         return adjacent;
+    }
+
+    Item* Node::GetPrevious(Item* item) {
+        Item* previous = nullptr;
+        Item* current = item_;
+        while (current != nullptr) {
+           if (current->key() >= item->key()) {
+               return previous;
+           }
+           previous = current;
+           current = current->NextItem();
+        }
+        return previous;
     }
 
     Item* Node::GetLeftParentItem() {
@@ -217,43 +228,37 @@ namespace BTree {
         // and then perform a simple rotation.
         if (items().size() == 1) {
             // Not root.
+            bool rotated = false;
             if (parent_ != nullptr) {
                 auto siblings = parent_->Adjacent(this);
-                bool rotated = false;
-                for (auto sibling : siblings) {
-                    auto sibling_size = sibling->items().size();
-                    if (sibling_size > 1) {
-                        // perform rotation
-                        // it's either rotation from left or right
-                        if (sibling->items()[0]->key() < item_->key()) {
-                            Item* last = sibling->items()[sibling_size - 1];
-                            Item* before_last = sibling->items()[sibling_size - 2];
-                            before_last->SetNext(nullptr);
-                            Item* left_parent_item = GetLeftParentItem();
-                            Item* stolen = new Item(left_parent_item->key(), left_parent_item->value());
-                            left_parent_item->SetKey(last->key());
-                            left_parent_item->SetValue(last->value());
+                if (siblings.first != nullptr && siblings.first->items().size() > 1) {
+                    auto sibling_size = siblings.first->items().size();
+                    Item* last = siblings.first->items()[sibling_size - 1];
+                    Item* before_last = siblings.first->items()[sibling_size - 2];
+                    before_last->SetNext(nullptr);
+                    Item* left_parent_item = GetLeftParentItem();
+                    Item* stolen = new Item(left_parent_item->key(), left_parent_item->value());
+                    left_parent_item->SetKey(last->key());
+                    left_parent_item->SetValue(last->value());
 
-                            stolen->SetNext(item_);
-                            stolen->SetLeft(last->right());
-                            stolen->SetRight(item_->left());
-                            item_ = stolen;
-                            delete last;
-                        } else {
-                            Item* first = sibling->item_;
-                            Item* right_parent_item = GetRightParentItem();
-                            Item* stolen = new Item(right_parent_item->key(), right_parent_item->value());
-                            right_parent_item->SetKey(first->key());
-                            right_parent_item->SetValue(first->value());
-                            stolen->SetRight(first->left());
-                            stolen->SetLeft(item_->right());
-                            item_->SetNext(stolen);
-                            sibling->item_ = first->NextItem();
-                            delete first;
-                        }
-                        rotated = true;
-                        break;
-                    }
+                    stolen->SetNext(item_);
+                    stolen->SetLeft(last->right());
+                    stolen->SetRight(item_->left());
+                    item_ = stolen;
+                    delete last;
+                    rotated = true;
+                } else if(siblings.second != nullptr && siblings.second->items().size() > 1) {
+                    Item* first = siblings.second->item_;
+                    Item* right_parent_item = GetRightParentItem();
+                    Item* stolen = new Item(right_parent_item->key(), right_parent_item->value());
+                    right_parent_item->SetKey(first->key());
+                    right_parent_item->SetValue(first->value());
+                    stolen->SetRight(first->left());
+                    stolen->SetLeft(item_->right());
+                    item_->SetNext(stolen);
+                    siblings.second->item_ = first->NextItem();
+                    delete first;
+                    rotated = true;
                 }
                 // if not rotated, try something else
                 if (!rotated) {
@@ -265,10 +270,9 @@ namespace BTree {
 
                         Item* left = left_node->item_;
                         Item* right = right_node->item_;
-                        right->left()->SetParent(parent_);
-                        right->right()->SetParent(parent_);
-                        left->left()->SetParent(parent_);
-                        left->right()->SetParent(parent_);
+
+                        right->UpdateParent(parent_);
+                        left->UpdateParent(parent_);
 
                         middle->SetRight(right->left());
                         middle->SetLeft(left->right());
@@ -284,8 +288,51 @@ namespace BTree {
 
                         return parent_->Delete(key, to_replace);
                     }
+                    auto siblings = parent_->Adjacent(this);
                     // or fuse left parent and left sibling
-                    // or fuse right parent and right sibling
+                    if (siblings.first != nullptr) {
+                        auto parent_item = GetLeftParentItem();
+                        auto left = siblings.first->item_;
+                        left->UpdateParent(this);
+
+                        auto right = item_;
+                        left->SetNext(parent_item);
+                        item_ = left;
+                        auto before_parent_item = parent_->GetPrevious(parent_item);
+                        if (before_parent_item == nullptr) {
+                            parent_->item_ = parent_item->NextItem();
+                        } else {
+                            before_parent_item->SetNext(parent_item->NextItem());
+                            before_parent_item->SetRight(this);
+                        }
+
+                        parent_item->SetNext(right);
+                        parent_item->SetLeft(left->right());
+                        parent_item->SetRight(right->left());
+                        delete siblings.first;
+                    } else {
+                        // or fuse right parent and right sibling
+                        auto parent_item = GetRightParentItem();
+                        auto right = siblings.second->item_;
+                        right->UpdateParent(this);
+                        auto left = item_;
+                        left->SetNext(parent_item);
+                        auto before_parent_item = parent_->GetPrevious(parent_item);
+                        if (before_parent_item == nullptr) {
+                            parent_->item_ = parent_item->NextItem();
+                        } else {
+                            before_parent_item->SetNext(parent_item->NextItem());
+                            before_parent_item->SetRight(this);
+                        }
+                        if (parent_item->NextItem() != nullptr) {
+                            parent_item->NextItem()->SetLeft(this);
+                        }
+
+                        parent_item->SetNext(right);
+                        parent_item->SetLeft(left->right());
+                        parent_item->SetRight(right->left());
+                        delete siblings.second;
+                    }
                 }
             }
         }

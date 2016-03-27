@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <functional>
+#include <utility>
 
 namespace BTree {
 
@@ -26,7 +27,7 @@ namespace BTree {
             std::string ToString();
 
             Item* Find(int key);
-            std::vector<Node*> Adjacent(Node* node);
+            std::pair<Node*, Node*> Adjacent(Node* node);
             void Insert(int key, int value, bool assure);
             void Delete(int key, Item* to_replace=nullptr);
 
@@ -40,6 +41,7 @@ namespace BTree {
             Node* parent() { return parent_; }
             void SetParent(Node* node) { parent_ = node; }
             bool IsLeaf() { return is_leaf_; }
+            Item* GetPrevious(Item* item);
         private:
             bool AssureNotFourNode();
             Item* GetLeftParentItem();
@@ -94,6 +96,15 @@ namespace BTree {
             }
             void SetNext(Item* item) {
                 next_item_ = item;
+            }
+
+            void UpdateParent(Node* parent) {
+                if (right_ != nullptr) {
+                    right_->SetParent(parent);
+                }
+                if (left_ != nullptr) {
+                    left_->SetParent(parent);
+                }
             }
         private:
             int key_;
