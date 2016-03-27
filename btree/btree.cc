@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "btree.h"
 
 /* TODO(att):
@@ -172,6 +173,139 @@ namespace BTree {
         }
     }
 
+    std::vector<Node*> Node::Adjacent(Node* node) {
+        auto all_nodes = children();
+        auto it = std::find(all_nodes.begin(), all_nodes.end(), node);
+        auto pos = std::distance(all_nodes.begin(), it);
+        std::vector<Node*> adjacent;
+        if (pos > 0) {
+            adjacent.push_back(all_nodes[pos - 1]);
+        }
+        if (pos < all_nodes.size() - 1) {
+            adjacent.push_back(all_nodes[pos + 1]);
+        }
+        return adjacent;
+    }
+
+    Item* Node::GetLeftParentItem() {
+        int first_key = item_->key();
+        auto all_items = parent_->items();
+        Item* previous = nullptr;
+        for (auto item : all_items) {
+           if (item->key() >  first_key) {
+               return previous;
+           }
+           previous = item;
+        }
+        return previous;
+    }
+
+    Item* Node::GetRightParentItem() {
+        int first_key = item_->key();
+        auto all_items = parent_->items();
+        for (auto item : all_items) {
+           if (item->key() >  first_key) {
+               return item;
+           }
+        }
+        return nullptr;
+    }
+
+    void Node::Delete(int key, Item* to_replace) {
+        // Eliminate 1-key nodes. (other than the root).
+        // 1. tries to steal a key from one of its adjacent siblings (nodes)
+        // and then perform a simple rotation.
+        if (items().size() == 1) {
+            // Not root.
+            if (parent_ != nullptr) {
+                auto siblings = parent_->Adjacent(this);
+                bool rotated = false;
+                for (auto sibling : siblings) {
+                    auto sibling_size = sibling->items().size();
+                    if (sibling_size > 1) {
+                        // perform rotation
+                        // it's either rotation from left or right
+                        if (sibling->items()[0]->key() < item_->key()) {
+                            Item* last = sibling->items()[sibling_size - 1];
+                            Item* before_last = sibling->items()[sibling_size - 2];
+                            before_last->SetNext(nullptr);
+                            Item* left_parent_item = GetLeftParentItem();
+                            Item* stolen = new Item(left_parent_item->key(), left_parent_item->value());
+                            left_parent_item->SetKey(last->key());
+                            left_parent_item->SetValue(last->value());
+
+                            stolen->SetNext(item_);
+                            stolen->SetLeft(last->right());
+                            stolen->SetRight(item_->left());
+                            item_ = stolen;
+                            delete last;
+                        } else {
+                            Item* first = sibling->item_;
+                            Item* right_parent_item = GetRightParentItem();
+                            Item* stolen = new Item(right_parent_item->key(), right_parent_item->value());
+                            right_parent_item->SetKey(first->key());
+                            right_parent_item->SetValue(first->value());
+                            stolen->SetRight(first->left());
+                            stolen->SetLeft(item_->right());
+                            item_->SetNext(stolen);
+                            sibling->item_ = first->NextItem();
+                            delete first;
+                        }
+                        rotated = true;
+                        break;
+                    }
+                }
+                // if not rotated, try something else
+            }
+        }
+
+        if (!IsLeaf()) {
+            Item* previous = nullptr;
+            Item* current = item_;
+            while(current != nullptr) {
+                if (key == current->key()) {
+                    // find successor and rotate all the way.
+                    return current->right()->Delete(key, current);
+                } else if (key < current->key()) {
+                    return current->left()->Delete(key);
+                } else if (current->NextItem() == nullptr) {
+                    return current->right()->Delete(key);
+                } else {
+                    previous = current;
+                    current = current->NextItem();
+                }
+            }
+        }
+
+        if (IsLeaf()) {
+            Item* previous = nullptr;
+            Item* current = item_;
+            if (to_replace != nullptr) {
+                to_replace->SetKey(current->key());
+                to_replace->SetValue(current->key());
+                item_ = current->NextItem();
+                delete current;
+                return;
+            }
+
+            while(current != nullptr) {
+                if (key == current->key()) {
+                    if (previous == nullptr) {
+                        item_ = current->NextItem();
+                    } else {
+                        previous->SetNext(current->NextItem());
+                    }
+                    delete current;
+                    return;
+                }
+
+                previous = current;
+                current = current->NextItem();
+            }
+        }
+
+    }
+
     std::vector<Node*> Node::children() {
         std::vector<Node*> nodes;
         if (IsLeaf()) {
@@ -232,5 +366,9 @@ namespace BTree {
 
     Item* Tree::Find(int key) {
         return root_->Find(key);
+    }
+
+    void Tree::Delete(int key) {
+        return root_->Delete(key);
     }
 } // namespace BTree

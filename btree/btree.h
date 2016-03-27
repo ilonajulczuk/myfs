@@ -26,7 +26,9 @@ namespace BTree {
             std::string ToString();
 
             Item* Find(int key);
+            std::vector<Node*> Adjacent(Node* node);
             void Insert(int key, int value, bool assure);
+            void Delete(int key, Item* to_replace=nullptr);
 
             void Traverse(std::function<void(BTree::Item*)> fn);
 
@@ -40,6 +42,8 @@ namespace BTree {
             bool IsLeaf() { return is_leaf_; }
         private:
             bool AssureNotFourNode();
+            Item* GetLeftParentItem();
+            Item* GetRightParentItem();
             Item* item_ = nullptr;
             bool is_leaf_ = true;
             Node* parent_ = nullptr;
@@ -57,8 +61,16 @@ namespace BTree {
                 return key_;
             }
 
+            void SetKey(int key) {
+                key_ = key;
+            }
+
             int value() {
                 return value_;
+            }
+
+            void SetValue(int value) {
+                value_ = value;
             }
 
             Node* right() {
@@ -100,6 +112,7 @@ namespace BTree {
             ~Tree() = default;
             Node* root() { return root_; }
             void Insert(int key, int value);
+            void Delete(int key);
             Item* Find(int key);
 
         private:

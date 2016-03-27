@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <functional>
 #include <vector>
+#include <map>
 
 #include "bfs.h"
 #include "btree.h"
@@ -136,8 +137,31 @@ TEST(FTest, InsertAndFindInTree) {
 
     for (const auto& pair : key_to_val) {
         auto found = t.Find(pair.first);
-        EXPECT_TRUE(found != nullptr);
+        EXPECT_NE(nullptr, found);
         EXPECT_EQ(found->value(), pair.second);
+    }
+}
+
+TEST(FTest, DeleteFromLeafNode) {
+    std::vector<std::pair<int, int>> key_to_val = {
+        {3, 4}, {4, 5}, {5, 6},
+    };
+
+    for (const auto& to_delete : key_to_val) {
+        BTree::Tree t;
+        for (const auto& pair : key_to_val) {
+            t.Insert(pair.first, pair.second);
+        }
+        t.Delete(to_delete.first);
+        for (const auto& pair : key_to_val) {
+            auto found = t.Find(pair.first);
+            if (pair.first == to_delete.first) {
+                EXPECT_EQ(nullptr, found);
+            } else {
+                EXPECT_NE(nullptr, found);
+                EXPECT_EQ(found->value(), pair.second);
+            }
+        }
     }
 }
 
@@ -187,6 +211,53 @@ TEST(FTest, TestTraversingInOrder) {
     t.root()->Traverse(tester);
     EXPECT_TRUE(!tester.isEmpty());
     EXPECT_TRUE(tester.areSorted());
+}
+
+TEST(FTest, TestAdjacent) {
+    // TODO(att): add validity check to tester, so that it checks for
+    // nodes with zero or too many items, or items out of order.
+    BTree::Tree t;
+    std::vector<BTree::Node*> nodes;
+    NodeTester tester(&nodes);
+
+    t.Insert(7, 3);
+    t.Insert(8, 3);
+    t.Insert(4, 2);
+    t.Insert(5, 3);
+    t.Insert(6, 3);
+    t.Insert(9, 4);
+    t.Insert(3, 2);
+    t.Insert(10, 4);
+    t.Insert(11, 4);
+
+    BFS::Traverse(t.root(), tester);
+    EXPECT_TRUE(!tester.isEmpty());
+    EXPECT_EQ(tester.count(), 5);
+    EXPECT_EQ(tester.treeDepth(), 2);
+
+    auto children = t.root()->children();
+    auto A = children[0];
+    auto B = children[1];
+    auto C = children[2];
+    auto D = children[3];
+
+    std::map<BTree::Node*, std::vector<BTree::Node*>> adjacency_map =
+        { {A, {B}},  {B, {A, C}}, {C, {B, D}}, {D, {C}} };
+
+    for (auto child : t.root()->children()) {
+        auto adjacent = t.root()->Adjacent(child);
+        auto expected = adjacency_map[child];
+        EXPECT_EQ(adjacent, expected);
+    }
+
+    BFS::Traverse(t.root(), printNode);
+    t.Delete(6);
+    EXPECT_EQ(t.Find(6), nullptr);
+    BFS::Traverse(t.root(), printNode);
+    t.Delete(8);
+    EXPECT_EQ(t.Find(8), nullptr);
+
+    BFS::Traverse(t.root(), printNode);
 }
 
 GTEST_API_ int main(int argc, char **argv) {
