@@ -282,7 +282,7 @@ namespace BTree {
             Item* current = item_;
             if (to_replace != nullptr) {
                 to_replace->SetKey(current->key());
-                to_replace->SetValue(current->key());
+                to_replace->SetValue(current->value());
                 item_ = current->NextItem();
                 delete current;
                 return;
@@ -303,7 +303,6 @@ namespace BTree {
                 current = current->NextItem();
             }
         }
-
     }
 
     std::vector<Node*> Node::children() {

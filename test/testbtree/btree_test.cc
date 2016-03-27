@@ -216,6 +216,8 @@ TEST(FTest, TestTraversingInOrder) {
 TEST(FTest, TestAdjacent) {
     // TODO(att): add validity check to tester, so that it checks for
     // nodes with zero or too many items, or items out of order.
+    // test if items that weren't supposed to be deleted are still there
+    // and that key match values.
     BTree::Tree t;
     std::vector<BTree::Node*> nodes;
     NodeTester tester(&nodes);
@@ -256,6 +258,10 @@ TEST(FTest, TestAdjacent) {
     BFS::Traverse(t.root(), printNode);
     t.Delete(8);
     EXPECT_EQ(t.Find(8), nullptr);
+
+    BFS::Traverse(t.root(), printNode);
+    t.Delete(7);
+    EXPECT_EQ(t.Find(7), nullptr);
 
     BFS::Traverse(t.root(), printNode);
 }
