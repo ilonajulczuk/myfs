@@ -266,6 +266,33 @@ TEST(FTest, TestAdjacent) {
     BFS::Traverse(t.root(), printNode);
 }
 
+TEST(FTest, TestMergingWithRoot) {
+    BTree::Tree t;
+    std::vector<BTree::Node*> nodes;
+    NodeTester tester(&nodes);
+
+    t.Insert(1, 2);
+    t.Insert(2, 2);
+    t.Insert(2, 3);
+    t.Insert(3, 2);
+    t.Insert(4, 2);
+    t.Insert(5, 3);
+    t.Insert(6, 3);
+    t.Insert(7, 3);
+    t.Insert(8, 3);
+
+    BFS::Traverse(t.root(), tester);
+    EXPECT_TRUE(!tester.isEmpty());
+    EXPECT_EQ(tester.count(), 7);
+    EXPECT_EQ(tester.treeDepth(), 3);
+
+    BFS::Traverse(t.root(), printNode);
+
+    t.Delete(6);
+    EXPECT_EQ(t.Find(6), nullptr);
+    BFS::Traverse(t.root(), printNode);
+}
+
 GTEST_API_ int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

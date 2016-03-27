@@ -256,6 +256,37 @@ namespace BTree {
                     }
                 }
                 // if not rotated, try something else
+                if (!rotated) {
+                    // can either pull up to parent
+                    if (parent_->items().size() == 1) {
+                        Item* middle = parent_->item_;
+                        Node* left_node = middle->left();
+                        Node* right_node = middle->right();
+
+                        Item* left = left_node->item_;
+                        Item* right = right_node->item_;
+                        right->left()->SetParent(parent_);
+                        right->right()->SetParent(parent_);
+                        left->left()->SetParent(parent_);
+                        left->right()->SetParent(parent_);
+
+                        middle->SetRight(right->left());
+                        middle->SetLeft(left->right());
+
+                        if (left_node->IsLeaf()) {
+                            is_leaf_ = true;
+                        }
+                        left->SetNext(middle);
+                        middle->SetNext(right);
+                        delete left_node;
+                        delete right_node;
+                        parent_->item_ = left;
+
+                        return parent_->Delete(key, to_replace);
+                    }
+                    // or fuse left parent and left sibling
+                    // or fuse right parent and right sibling
+                }
             }
         }
 
