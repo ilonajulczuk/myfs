@@ -19,7 +19,7 @@ namespace BFS {
             }
         }
     }
-
+    /*
     void Traverse(BTree::Node* start, std::function<void(BTree::Node*)> fn) {
         std::queue<BTree::Node*> q;
         std::unordered_set<BTree::Node*> seen;
@@ -37,4 +37,5 @@ namespace BFS {
             }
         }
     }
+    */
 } // namespace BFS

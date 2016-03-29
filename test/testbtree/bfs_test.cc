@@ -7,7 +7,7 @@ template<typename T> void printToString(T t) {
 }
 
 TEST(BFSTest, TemplateThingies) {
-    BTree::Tree t;
+    BTree::Tree<> t;
     t.Insert(5, 4);
     std::cout << "Testing template function\n";
     printToString(&t);

@@ -14,6 +14,6 @@ project(myfs)
 
 enable_testing()
 
-add_subdirectory(main)
-add_subdirectory(test)
 add_subdirectory(btree)
+add_subdirectory(test)
+add_subdirectory(main)

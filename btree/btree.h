@@ -9,6 +9,7 @@
 
 namespace BTree {
 
+    template<typename K = int, typename V = int>
     class Item;
 
     /* Node represents a node of twoThreeFour tree.
@@ -16,89 +17,106 @@ namespace BTree {
      * TwoNode has two children, threeNode has three and fourNode has... four.
      * Keys and values in node are represented by Items.
      */
+    template<typename K = int, typename V = int>
     class Node {
         public:
+            using ValueType = V;
+            using KeyType = K;
+            using ItemT = Item<K, V>;
+            using NodeT = Node<K, V>;
+
             // default constructor is deleted.
             Node() = delete;
 
-            Node(int key, int value);
-            Node(Item* item, Node* parent, bool is_leaf);
+            Node(KeyType key, ValueType value);
+            Node(ItemT* item, Node* parent, bool is_leaf);
 
             std::string ToString();
 
-            Item* Find(int key);
-            std::pair<Node*, Node*> Adjacent(Node* node);
-            void Insert(int key, int value, bool assure);
-            void Delete(int key, Item* to_replace=nullptr);
+            ItemT* Find(KeyType key);
+            void Insert(KeyType key, ValueType value, bool assure);
+            void Delete(KeyType key, ItemT* to_replace=nullptr);
 
-            void Traverse(std::function<void(BTree::Item*)> fn);
+            void Traverse(std::function<void(ItemT*)> fn);
 
-            std::vector<Item*> items();
-            std::vector<Node*> children();
+            std::vector<ItemT*> items();
+            std::vector<Node<K, V>*> children();
 
-            void SetItem(Item* item) { item_ = item; }
+            void SetItem(ItemT* item) { item_ = item; }
 
             Node* parent() { return parent_; }
-            void SetParent(Node* node) { parent_ = node; }
+            void SetParent(Node<K, V>* node) { parent_ = node; }
             bool IsLeaf() { return is_leaf_; }
-            Item* GetPrevious(Item* item);
+            bool IsRoot() { return parent_ == nullptr; }
+            std::pair<Node<K, V>*, Node<K, V>*> Adjacent(Node<K, V>* node);
         private:
+            ItemT* GetPrevious(ItemT* item);
             bool AssureNotFourNode();
-            Item* GetLeftParentItem();
-            Item* GetRightParentItem();
-            Item* item_ = nullptr;
+            bool StealFromSibling(std::pair<Node<K, V>*, Node<K, V>*> siblings);
+            void PullUpToParent();
+            void FuseLeft(Node<K, V>* sibling);
+            void FuseRight(Node<K, V>* sibling);
+            ItemT* GetLeftParentItem();
+            ItemT* GetRightParentItem();
+            ItemT* item_ = nullptr;
             bool is_leaf_ = true;
-            Node* parent_ = nullptr;
+            Node<K, V>* parent_ = nullptr;
     };
 
+    template<typename K, typename V>
     class Item {
         public:
-            Item(int key, int value): key_(key), value_(value) {}
+            using ValueType = V;
+            using KeyType = K;
+            using NodeT = Node<K, V>;
+            using ItemT = Item<K, V>;
+
+            Item(KeyType key, ValueType value): key_(key), value_(value) {}
 
             std::string ToString() {
                 return "<Item: " + std::to_string(key_) + ", " + std::to_string(value_) + ">";
             }
 
-            int key() {
+            KeyType key() {
                 return key_;
             }
 
-            void SetKey(int key) {
+            void SetKey(KeyType key) {
                 key_ = key;
             }
 
-            int value() {
+            ValueType value() {
                 return value_;
             }
 
-            void SetValue(int value) {
+            void SetValue(ValueType value) {
                 value_ = value;
             }
 
-            Node* right() {
+            NodeT* right() {
                 return right_;
             }
 
-            void SetRight(Node* node) {
+            void SetRight(NodeT* node) {
                 right_ = node;
             }
 
-            Node* left() {
+            NodeT* left() {
                 return left_;
             }
 
-            void SetLeft(Node* node) {
+            void SetLeft(NodeT* node) {
                 left_ = node;
             }
 
-            Item* NextItem() {
+            ItemT* NextItem() {
                 return next_item_;
             }
-            void SetNext(Item* item) {
+            void SetNext(ItemT* item) {
                 next_item_ = item;
             }
 
-            void UpdateParent(Node* parent) {
+            void UpdateParent(NodeT* parent) {
                 if (right_ != nullptr) {
                     right_->SetParent(parent);
                 }
@@ -107,27 +125,32 @@ namespace BTree {
                 }
             }
         private:
-            int key_;
-            int value_;
-            Item* next_item_ = nullptr;
-            Node* left_ = nullptr;
-            Node* right_ = nullptr;
+            KeyType key_;
+            ValueType value_;
+            ItemT* next_item_ = nullptr;
+            NodeT* left_ = nullptr;
+            NodeT* right_ = nullptr;
     };
 
-
+    template<typename K = int, typename V = int>
     class Tree {
         public:
+            using ValueType = V;
+            using KeyType = K;
+            using NodeT = Node<K, V>;
+            using ItemT = Item<K, V>;
+
             std::string ToString();
 
             Tree() {}
             ~Tree() = default;
-            Node* root() { return root_; }
-            void Insert(int key, int value);
-            void Delete(int key);
-            Item* Find(int key);
+            NodeT* root() { return root_; }
+            void Insert(KeyType key, ValueType value);
+            void Delete(KeyType key);
+            ItemT* Find(KeyType key);
 
         private:
-            Node* root_ = nullptr;
+            NodeT* root_ = nullptr;
     };
 
 } // namespace BTree

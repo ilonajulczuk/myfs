@@ -3,7 +3,6 @@
 
 
 int main() {
-
-    BTree::Tree t;
+    BTree::Tree<int, int> t;
     std::cout << t.ToString() << " Wee!\n";
 }
