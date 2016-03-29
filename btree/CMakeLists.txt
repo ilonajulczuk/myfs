@@ -2,7 +2,6 @@ set(btree_SRCS
     btree.h
     btree.cc
     bfs.h
-    bfs.cc
 )
 
 # Declare the library
